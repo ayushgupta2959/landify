@@ -6,10 +6,13 @@ const tokens = (n) => {
 };
 
 describe("Escrow", () => {
-  let seller, inspector, lender, escrow, landify;
+  let buyer, seller, inspector, lender, escrow, landify;
+  const tokenId = 1;
+  const purchasePrice = tokens(10);
+  const escrowAmount = tokens(5);
 
   beforeEach(async () => {
-    [seller, inspector, lender] = await ethers.getSigners();
+    [buyer, seller, inspector, lender] = await ethers.getSigners();
 
     // Deploy Landify
     const Landify = await ethers.getContractFactory("Landify");
@@ -30,7 +33,18 @@ describe("Escrow", () => {
       seller.address,
       landify.address
     );
+
+    transaction = await landify
+      .connect(seller)
+      .approve(escrow.address, tokenId);
+    await transaction.wait();
+
+    transaction = await escrow
+      .connect(seller)
+      .list(tokenId, buyer.address, purchasePrice, escrowAmount);
+    await transaction.wait();
   });
+
   describe("Deployment", () => {
     it("returns nft address", async () => {
       expect(await escrow.nftAddress()).to.be.equal(landify.address);
@@ -43,6 +57,28 @@ describe("Escrow", () => {
     });
     it("returns inspector address", async () => {
       expect(await escrow.inspector()).to.be.equal(inspector.address);
+    });
+  });
+
+  describe("Listing", () => {
+    it("Updated as listed", async () => {
+      expect(await escrow.isListed(tokenId)).to.be.equal(true);
+    });
+
+    it("Update ownership", async () => {
+      expect(await landify.ownerOf(tokenId)).to.be.equal(escrow.address);
+    });
+
+    it("Returns buyer", async () => {
+      expect(await escrow.buyer(tokenId)).to.be.equal(buyer.address);
+    });
+
+    it("Returns purchase price", async () => {
+      expect(await escrow.purchasePrice(tokenId)).to.be.equal(purchasePrice);
+    });
+
+    it("Returns escrow amount", async () => {
+      expect(await escrow.escrowAmount(tokenId)).to.be.equal(escrowAmount);
     });
   });
 });
