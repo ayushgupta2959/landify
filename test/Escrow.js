@@ -81,4 +81,15 @@ describe("Escrow", () => {
       expect(await escrow.escrowAmount(tokenId)).to.be.equal(escrowAmount);
     });
   });
+
+  describe("Deposits", () => {
+    it("Update contract balance", async () => {
+      let transaction = await escrow
+        .connect(buyer)
+        .depositEarnest(tokenId, { value: escrowAmount });
+      await transaction.wait();
+
+      expect(await escrow.getBalance()).to.be.equal(escrowAmount);
+    });
+  });
 });
