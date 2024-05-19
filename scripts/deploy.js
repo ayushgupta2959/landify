@@ -42,6 +42,8 @@ async function main() {
   );
   await escrow.deployed();
 
+  console.log("Ecrow deployed to:", escrow.address);
+
   for (let i = 1; i < 4; ++i) {
     // Approve properties
     let transaction = await landify.connect(seller).approve(escrow.address, i);
@@ -49,12 +51,11 @@ async function main() {
 
     // Listing properties
     transaction = await escrow
-    .connect(seller)
-    .list(i, buyer.address, tokens("10"), tokens("5"));
+      .connect(seller)
+      .list(i, buyer.address, tokens("10"), tokens("5"));
   }
 
   console.log("Listing done");
-  
 }
 
 // We recommend this pattern to be able to use async/await everywhere
