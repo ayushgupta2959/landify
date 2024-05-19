@@ -10,6 +10,7 @@ describe("Escrow", () => {
   const tokenId = 1;
   const purchasePrice = tokens(10);
   const escrowAmount = tokens(5);
+  const lenderAmount = tokens(5);
 
   beforeEach(async () => {
     [buyer, seller, inspector, lender] = await ethers.getSigners();
@@ -101,6 +102,62 @@ describe("Escrow", () => {
       await transaction.wait();
 
       expect(await escrow.inspectionStatus(tokenId)).to.be.equal(true);
+    });
+  });
+
+  describe("Approval", () => {
+    it("Update approval status", async () => {
+      let transaction = await escrow.connect(buyer).approveSale(tokenId);
+      await transaction.wait();
+
+      transaction = await escrow.connect(seller).approveSale(tokenId);
+      await transaction.wait();
+
+      transaction = await escrow.connect(lender).approveSale(tokenId);
+      await transaction.wait();
+
+      expect(await escrow.approval(tokenId, buyer.address)).to.be.equal(true);
+      expect(await escrow.approval(tokenId, seller.address)).to.be.equal(true);
+      expect(await escrow.approval(tokenId, lender.address)).to.be.equal(true);
+    });
+  });
+
+  describe("Sale", () => {
+    beforeEach(async () => {
+      let transaction = await escrow
+        .connect(buyer)
+        .depositEarnest(tokenId, { value: escrowAmount });
+      await transaction.wait();
+
+      transaction = await escrow
+        .connect(inspector)
+        .updateInspectionStatus(tokenId, true);
+      await transaction.wait();
+
+      transaction = await escrow.connect(buyer).approveSale(tokenId);
+      await transaction.wait();
+
+      transaction = await escrow.connect(seller).approveSale(tokenId);
+      await transaction.wait();
+
+      transaction = await escrow.connect(lender).approveSale(tokenId);
+      await transaction.wait();
+
+      transaction = await escrow
+        .connect(lender)
+        .depositLenderAmount(tokenId, { value: lenderAmount });
+      await transaction.wait();
+
+      transaction = await escrow.connect(seller).finalizeSale(tokenId);
+      await transaction.wait();
+    });
+
+    it("update ownership", async () => {
+      expect(await landify.ownerOf(tokenId)).to.be.equal(buyer.address);
+    });
+
+    it("update balance", async () => {
+      expect(await escrow.getBalance()).to.be.equal(0);
     });
   });
 });
