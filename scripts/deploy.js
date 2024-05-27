@@ -26,7 +26,7 @@ async function main() {
     const transaction = await landify
       .connect(seller)
       .mint(
-        `https://ipfs.io/ipfs/QmQVcpsjrA6cr1iJjZAodYwmPekYgbnXGo4DFubJiLc2EB/${i}.json`
+        `https://ipfs.io/ipfs/QmYVmPA1Dzh27jgPjcGEj2rPEKwzPSuErWVDa8F2QP6L1Z/${i}.json`
       );
 
     await transaction.wait();
