@@ -95,6 +95,7 @@ function App() {
           escrow={escrow}
           togglePop={toggleProp}
           provider={provider}
+          account={account}
         />
       )}
     </div>
